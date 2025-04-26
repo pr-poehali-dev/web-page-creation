@@ -1,4 +1,6 @@
 
+import React from "react";
+
 interface Preset {
   id: number;
   time: number;
@@ -7,46 +9,52 @@ interface Preset {
 interface PresetsListProps {
   presets: Preset[];
   onSelect: (time: number) => void;
-  isMobile?: boolean;
-  orientation?: 'portrait' | 'landscape';
+  isMobile: boolean;
+  orientation: 'portrait' | 'landscape';
 }
 
-const PresetsList = ({ presets, onSelect, isMobile = false, orientation = 'portrait' }: PresetsListProps) => {
-  const formatPreset = (seconds: number) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secondsLeft = seconds % 60;
+const PresetsList: React.FC<PresetsListProps> = ({ 
+  presets, 
+  onSelect,
+  isMobile,
+  orientation
+}) => {
+  // Форматирование времени для пресетов
+  const formatPresetTime = (timeInSeconds: number) => {
+    const hours = Math.floor(timeInSeconds / 3600);
+    const minutes = Math.floor((timeInSeconds % 3600) / 60);
+    const seconds = timeInSeconds % 60;
 
     const pad = (num: number) => num.toString().padStart(2, "0");
     
-    // Упрощенный формат для мобильных устройств
-    if (isMobile) {
-      return `${hours}:${pad(minutes)}:${pad(secondsLeft)}`;
+    if (seconds === 0 && minutes === 0) {
+      return `${hours}.00:00:00`;
+    } else if (seconds === 0) {
+      return `${hours}.${pad(minutes)}:00:00`;
+    } else {
+      return `${hours}.${pad(minutes)}:${pad(seconds)}:00`;
     }
-    
-    return `${hours}:${pad(minutes)}:${pad(secondsLeft)}`;
   };
 
-  // Определяем стили списка в зависимости от устройства и ориентации
-  const listClasses = isMobile && orientation === 'portrait'
-    ? "flex flex-row justify-center flex-wrap gap-3 mt-4"
-    : "flex flex-col space-y-2";
+  // Определение стилей для контейнера пресетов в зависимости от ориентации
+  const containerClasses = isMobile && orientation === 'portrait'
+    ? "flex flex-col mt-4 items-start"
+    : isMobile && orientation === 'landscape'
+      ? "flex flex-col ml-8 items-start"
+      : "flex flex-col ml-16 items-start";
 
-  const presetClasses = isMobile && orientation === 'portrait'
-    ? "text-sm px-2 py-1 border border-gray-300 rounded cursor-pointer hover:bg-gray-100"
-    : "cursor-pointer hover:font-bold transition-all";
+  // Определение размера шрифта в зависимости от устройства
+  const fontSizeClass = isMobile ? "text-sm" : "text-base";
 
   return (
-    <div className={listClasses}>
+    <div className={containerClasses}>
       {presets.map((preset) => (
         <div 
           key={preset.id}
-          className={presetClasses}
+          className={`${fontSizeClass} cursor-pointer hover:text-blue-500 mb-1`}
           onClick={() => onSelect(preset.time)}
         >
-          {isMobile && orientation === 'portrait' 
-            ? `${preset.id}. ${formatPreset(preset.time)}`
-            : `${preset.id}.${formatPreset(preset.time)}`}
+          {`${preset.id}.${formatPresetTime(preset.time)}`}
         </div>
       ))}
     </div>
